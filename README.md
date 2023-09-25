@@ -14,26 +14,18 @@ For external assets please import them one at a time and make sure they're place
 1. Import the assets using the Unreal Engine tab on Epic Games Launcher
 2. Once Imported open the project and either migrate or move the folder into External (Currently not in any deeper subfolder yet)
 
-### Importing Behavior Designer Plug-in
-1. Import the asset into the project
-2. Move into the "External" folder within assets.
-
-There will be a build version in many weeks time.
-
 ## Controls
 - WASD - Character Movement
-- Spacebar - Jump
 - E - Interact
 - Mouse - Aim
-- LMB - Shoot
-- P/Esc - Open Pause Menu
 
 ## Credits
-Code is made purely by me with some inspiration from Tutorials / ChatGPT / Googling solutions to problems.
+Code is made purely by me with some inspiration from Tutorials / Googling solutions to problems.
 
 ### Tools Used
 - Unity 2023.1.4f1
 - JetBrains Rider 2023.1.2
+- Visual Studio Community 2022
 - VS Code (Editing README and also Secondary IDE)
 - Google Docs (Creating and maintaining the Game Design Document)
 - Trello (Project Management)
