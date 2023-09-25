@@ -74,4 +74,5 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 # Ignore External Assets
-Content/External/
+Content/External/*
+!Content/External/PlaceExternalAssetsHere.txt

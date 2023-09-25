@@ -1,0 +1,1 @@
+Follow the instructions on the README and place Assets used here in the proper folders for the project to work!
