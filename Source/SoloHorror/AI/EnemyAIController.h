@@ -47,6 +47,14 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float DistanceToPlayer = 0.f;
-	
 
+	// Hearing Config
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class UAISenseConfig_Hearing* HearingConfig;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float AIHearingRange = 800.f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float AIHearingAge = 5.f;
 };
