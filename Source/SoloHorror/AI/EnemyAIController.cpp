@@ -12,6 +12,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 
 AEnemyAIController::AEnemyAIController()
 {
@@ -89,36 +90,43 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 {
 	GEngine->AddOnScreenDebugMessage(0, 4.f, FColor::Blue, FString("Perceived"));
-	// Handles Heard Actors first
 	
+	// Hearing
 	FAISenseID HearingSenseID = UAISense::GetSenseID<UAISense_Hearing>(); 	
 	if (PerceptionComponent->GetSenseConfig(HearingSenseID) != nullptr)
 	{
 		const FActorPerceptionInfo* HeardPerceptionInfo = PerceptionComponent->GetFreshestTrace(HearingSenseID);
 		if (HeardPerceptionInfo != nullptr && PerceptionComponent->HasActiveStimulus(*HeardPerceptionInfo->Target, HearingSenseID))
 		{
-			FVector HeardSomethingLocation = HeardPerceptionInfo->GetStimulusLocation(HearingSenseID);
-			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Heard"));
-			BB->SetValue<UBlackboardKeyType_Bool>("HeardSound", true);
-			BB->SetValue<UBlackboardKeyType_Vector>("LastSoundLocation", HeardSomethingLocation);
+			if(HeardPerceptionInfo->Target->ActorHasTag("Player"))
+			{
+				FVector HeardSomethingLocation = HeardPerceptionInfo->GetStimulusLocation(HearingSenseID);
+				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Heard"));
+				BB->SetValue<UBlackboardKeyType_Bool>("HeardSound", true);
+				BB->SetValue<UBlackboardKeyType_Bool>("ChasingPlayer", true);
+				BB->SetValue<UBlackboardKeyType_Vector>("LastSoundLocation", HeardSomethingLocation);
+			}
 		}
 	}
 
 	// Sight
-	
 	FAISenseID SightSenseID = UAISense::GetSenseID<UAISenseConfig_Sight>(); 	
 	if (PerceptionComponent->GetSenseConfig(SightSenseID) != nullptr)
 	{
 		const FActorPerceptionInfo* SightPerceptionInfo = PerceptionComponent->GetFreshestTrace(SightSenseID);
 		if (SightPerceptionInfo != nullptr && PerceptionComponent->HasActiveStimulus(*SightPerceptionInfo->Target, SightSenseID))
 		{
-			FVector LastSeenPlayerLocation = SightPerceptionInfo->GetStimulusLocation(SightSenseID);
-			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Sighted"));
-			BB->SetValue<UBlackboardKeyType_Bool>("SeePlayer", true);
-			BB->SetValue<UBlackboardKeyType_Vector>("LastSeenPlayerLocation", LastSeenPlayerLocation);
+			if(SightPerceptionInfo->Target->ActorHasTag("Player"))
+			{
+				FVector LastSeenPlayerLocation = SightPerceptionInfo->GetStimulusLocation(SightSenseID);
+				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Sighted"));
+				BB->SetValue<UBlackboardKeyType_Bool>("SeePlayer", true);
+				BB->SetValue<UBlackboardKeyType_Bool>("ChasingPlayer", true);
+				BB->SetValue<UBlackboardKeyType_Object>("Player", DetectedPawns[0]);
+				BB->SetValue<UBlackboardKeyType_Vector>("LastSeenPlayerLocation", LastSeenPlayerLocation);
+			}
 		}
 	}
 
-	
 }
 
