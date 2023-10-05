@@ -24,6 +24,9 @@ public:
 
 	UFUNCTION()
 	void OnPawnDetected(const TArray<AActor*>& DetectedPawns);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBehaviorTree* TreeAsset;
 	
 	// Behavior Tree and Blackboard
 	class UBehaviorTreeComponent* BTree;

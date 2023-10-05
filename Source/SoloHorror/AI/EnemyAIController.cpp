@@ -2,14 +2,25 @@
 
 #include "EnemyAIController.h"
 
+#include "EnemyCharacter.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Sight.h"
+
+#include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 
 AEnemyAIController::AEnemyAIController()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Create Blackboard and BTree Components
+	BB = CreateDefaultSubobject<UBlackboardComponent>("Blackboard");
+	BTree = CreateDefaultSubobject<UBehaviorTreeComponent>("Behaviour Tree");
+	
 	// Creates Base Perception Comps
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>("Sight Config");
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>("Hearing Config");
@@ -29,6 +40,15 @@ void AEnemyAIController::BeginPlay()
 void AEnemyAIController::OnPossess(APawn* MyPawn)
 {
 	Super::OnPossess(MyPawn);
+
+	// Ensures Controlled Character and TreeAsset are set before starting
+	AEnemyCharacter* MyCharacter = Cast<AEnemyCharacter>(MyPawn);
+	if (MyCharacter && TreeAsset)
+	{
+		BB->InitializeBlackboard(*TreeAsset->BlackboardAsset);
+		BTree->StartTree(*TreeAsset);
+	}
+	
 }
 
 void AEnemyAIController::SetupSenses()
@@ -79,7 +99,8 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 		{
 			FVector HeardSomethingLocation = HeardPerceptionInfo->GetStimulusLocation(HearingSenseID);
 			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Heard"));
-			
+			BB->SetValue<UBlackboardKeyType_Bool>("HeardSound", true);
+			BB->SetValue<UBlackboardKeyType_Vector>("LastSoundLocation", HeardSomethingLocation);
 		}
 	}
 
@@ -91,8 +112,10 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 		const FActorPerceptionInfo* SightPerceptionInfo = PerceptionComponent->GetFreshestTrace(SightSenseID);
 		if (SightPerceptionInfo != nullptr && PerceptionComponent->HasActiveStimulus(*SightPerceptionInfo->Target, SightSenseID))
 		{
-			FVector SeenSomethingLocation = SightPerceptionInfo->GetStimulusLocation(SightSenseID);
+			FVector LastSeenPlayerLocation = SightPerceptionInfo->GetStimulusLocation(SightSenseID);
 			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Sighted"));
+			BB->SetValue<UBlackboardKeyType_Bool>("SeePlayer", true);
+			BB->SetValue<UBlackboardKeyType_Vector>("LastSeenPlayerLocation", LastSeenPlayerLocation);
 		}
 	}
 
