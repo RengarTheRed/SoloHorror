@@ -16,6 +16,7 @@ class SOLOHORROR_API AEnemyAIController : public AAIController
 
 	void SetupSenses();
 
+
 public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* MyPawn) override;
@@ -24,13 +25,13 @@ public:
 	UFUNCTION()
 	void OnPawnDetected(const TArray<AActor*>& DetectedPawns);
 	
-protected:
-
 	// Behavior Tree and Blackboard
 	class UBehaviorTreeComponent* BTree;
-	class UBlackboardComponent* BB;
+	UBlackboardComponent* BB;
 
 	// Sense Configs
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UAIPerceptionComponent* MyPerceptionComp;
 
 	// Sight Config
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

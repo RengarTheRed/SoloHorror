@@ -13,7 +13,13 @@ AEnemyAIController::AEnemyAIController()
 	// Creates Base Perception Comps
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>("Sight Config");
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>("Hearing Config");
-	SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>("Perception"));
+	MyPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>("Perception");
+	
+	// Ensure PerceptionComp exists before Configuring Senses
+	if(MyPerceptionComp!=nullptr)
+	{
+		SetupSenses();
+	}
 }
 void AEnemyAIController::BeginPlay()
 {
@@ -23,8 +29,6 @@ void AEnemyAIController::BeginPlay()
 void AEnemyAIController::OnPossess(APawn* MyPawn)
 {
 	Super::OnPossess(MyPawn);
-
-	SetupSenses();
 }
 
 void AEnemyAIController::SetupSenses()
@@ -40,9 +44,6 @@ void AEnemyAIController::SetupSenses()
 	SightConfig->DetectionByAffiliation.bDetectNeutrals=true;
 	SightConfig->DetectionByAffiliation.bDetectEnemies=true;
 
-	GetPerceptionComponent()->SetDominantSense(*SightConfig->GetSenseImplementation());
-	GetPerceptionComponent()->OnPerceptionUpdated.AddDynamic(this, &AEnemyAIController::OnPawnDetected);
-	GetPerceptionComponent()->ConfigureSense(*SightConfig);
 
 	// Hearing Setup
 	
@@ -52,6 +53,12 @@ void AEnemyAIController::SetupSenses()
 	HearingConfig->DetectionByAffiliation.bDetectFriendlies=true;
 	HearingConfig->DetectionByAffiliation.bDetectNeutrals=true;
 	HearingConfig->DetectionByAffiliation.bDetectEnemies=true;
+
+	// Adds Sense Configs to Perception Component
+	MyPerceptionComp->ConfigureSense(*SightConfig);
+	MyPerceptionComp->ConfigureSense(*HearingConfig);
+	MyPerceptionComp->SetDominantSense(*SightConfig->GetSenseImplementation());
+	MyPerceptionComp->OnPerceptionUpdated.AddDynamic(this, &AEnemyAIController::OnPawnDetected);
 }
 
 void AEnemyAIController::Tick(float DeltaSeconds)
@@ -61,7 +68,7 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 
 void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 {
-
+	GEngine->AddOnScreenDebugMessage(0, 4.f, FColor::Blue, FString("Perceived"));
 	// Handles Heard Actors first
 	
 	FAISenseID HearingSenseID = UAISense::GetSenseID<UAISense_Hearing>(); 	
@@ -71,6 +78,8 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 		if (HeardPerceptionInfo != nullptr && PerceptionComponent->HasActiveStimulus(*HeardPerceptionInfo->Target, HearingSenseID))
 		{
 			FVector HeardSomethingLocation = HeardPerceptionInfo->GetStimulusLocation(HearingSenseID);
+			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Heard"));
+			
 		}
 	}
 
@@ -83,6 +92,7 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 		if (SightPerceptionInfo != nullptr && PerceptionComponent->HasActiveStimulus(*SightPerceptionInfo->Target, SightSenseID))
 		{
 			FVector SeenSomethingLocation = SightPerceptionInfo->GetStimulusLocation(SightSenseID);
+			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Sighted"));
 		}
 	}
 
