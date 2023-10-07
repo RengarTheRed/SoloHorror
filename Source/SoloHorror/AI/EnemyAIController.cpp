@@ -2,6 +2,8 @@
 
 #include "EnemyAIController.h"
 
+#include <string>
+
 #include "EnemyCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -85,11 +87,19 @@ void AEnemyAIController::SetupSenses()
 void AEnemyAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if(DistanceToPlayer>AILoseSightRadius)
+	{
+		GEngine->AddOnScreenDebugMessage(0,5.f, FColor::Green, FString("Cleared Player Vars"));
+		BB->ClearValue("SeePlayer");
+		BB->ClearValue("Player");
+	}
 }
 
 void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 {
 	GEngine->AddOnScreenDebugMessage(0, 4.f, FColor::Blue, FString("Perceived"));
+
 	
 	// Hearing
 	FAISenseID HearingSenseID = UAISense::GetSenseID<UAISense_Hearing>(); 	
@@ -110,23 +120,23 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 	}
 
 	// Sight
-	FAISenseID SightSenseID = UAISense::GetSenseID<UAISenseConfig_Sight>(); 	
-	if (PerceptionComponent->GetSenseConfig(SightSenseID) != nullptr)
+	
+	TArray<AActor*> SeenActors;
+	GetPerceptionComponent()->GetCurrentlyPerceivedActors(GetPerceptionComponent()->GetDominantSense(), SeenActors);
+
+	for (auto SeenActor : SeenActors)
 	{
-		const FActorPerceptionInfo* SightPerceptionInfo = PerceptionComponent->GetFreshestTrace(SightSenseID);
-		if (SightPerceptionInfo != nullptr && PerceptionComponent->HasActiveStimulus(*SightPerceptionInfo->Target, SightSenseID))
+		if(SeenActor->ActorHasTag("Player"))
 		{
-			if(SightPerceptionInfo->Target->ActorHasTag("Player"))
-			{
-				FVector LastSeenPlayerLocation = SightPerceptionInfo->GetStimulusLocation(SightSenseID);
-				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Sighted"));
-				BB->SetValue<UBlackboardKeyType_Bool>("SeePlayer", true);
-				BB->SetValue<UBlackboardKeyType_Bool>("ChasingPlayer", true);
-				BB->SetValue<UBlackboardKeyType_Object>("Player", DetectedPawns[0]);
-				BB->SetValue<UBlackboardKeyType_Vector>("LastSeenPlayerLocation", LastSeenPlayerLocation);
-			}
+			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Sighted"));
+			BB->SetValue<UBlackboardKeyType_Bool>("SeePlayer", true);
+			BB->SetValue<UBlackboardKeyType_Bool>("ChasingPlayer", true);
+			BB->SetValue<UBlackboardKeyType_Object>("Player", SeenActor);
+			BB->SetValue<UBlackboardKeyType_Vector>("LastSeenPlayerLocation", SeenActor->GetActorLocation());
+			DistanceToPlayer = GetPawn()->GetDistanceTo(SeenActor);
+			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString::SanitizeFloat(DistanceToPlayer));
 		}
-	}
+	}	
 
 }
 
