@@ -52,6 +52,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float DistanceToPlayer = 0.f;
 
+	// Sight Timer Setup
+	
+	FTimerHandle SightTimer;
+	AActor* PlayerActor;
+	void TimerUpdate();
+	float TimerRunTime = 0.f;
+
 	// Hearing Config
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)

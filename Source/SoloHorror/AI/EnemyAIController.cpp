@@ -87,7 +87,7 @@ void AEnemyAIController::SetupSenses()
 void AEnemyAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
+	
 	if(DistanceToPlayer>AILoseSightRadius)
 	{
 		GEngine->AddOnScreenDebugMessage(0,5.f, FColor::Green, FString("Cleared Player Vars"));
@@ -115,16 +115,17 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 				BB->SetValue<UBlackboardKeyType_Bool>("HeardSound", true);
 				BB->SetValue<UBlackboardKeyType_Bool>("ChasingPlayer", true);
 				BB->SetValue<UBlackboardKeyType_Vector>("LastSoundLocation", HeardSomethingLocation);
+
+				
 			}
 		}
 	}
 
 	// Sight
-	
+
 	TArray<AActor*> SeenActors;
 	GetPerceptionComponent()->GetCurrentlyPerceivedActors(GetPerceptionComponent()->GetDominantSense(), SeenActors);
-
-	for (auto SeenActor : SeenActors)
+	for (AActor* SeenActor : SeenActors)
 	{
 		if(SeenActor->ActorHasTag("Player"))
 		{
@@ -133,10 +134,37 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 			BB->SetValue<UBlackboardKeyType_Bool>("ChasingPlayer", true);
 			BB->SetValue<UBlackboardKeyType_Object>("Player", SeenActor);
 			BB->SetValue<UBlackboardKeyType_Vector>("LastSeenPlayerLocation", SeenActor->GetActorLocation());
-			DistanceToPlayer = GetPawn()->GetDistanceTo(SeenActor);
-			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString::SanitizeFloat(DistanceToPlayer));
+			PlayerActor = SeenActor;
+			
+			if(GetWorld()->GetTimerManager().TimerExists(SightTimer))
+            {
+                GetWorld()->GetTimerManager().ClearTimer(SightTimer);
+                GetWorld()->GetTimerManager().SetTimer(SightTimer, this, &AEnemyAIController::TimerUpdate, 1.f, true);
+            }
+			else
+			{
+                GetWorld()->GetTimerManager().SetTimer(SightTimer, this, &AEnemyAIController::TimerUpdate, 1.f, true);
+			}
 		}
 	}	
-
 }
 
+void AEnemyAIController::TimerUpdate()
+{
+	// Increment the counter and debug
+	TimerRunTime+=1.f;
+	DistanceToPlayer = GetPawn()->GetDistanceTo(PlayerActor);
+	
+	GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Black, FString::SanitizeFloat(TimerRunTime));
+	 
+	// Are we done counting?
+	if (TimerRunTime >= 2)
+	{
+		BB->ClearValue("SeePlayer");
+		BB->ClearValue("Player");
+		
+		GEngine->AddOnScreenDebugMessage(0, 1.f, FColor::Black, FString("Cleared Run Timer"));
+		// Clear the timer handle so it won't keep triggering events
+		GetWorld()->GetTimerManager().ClearTimer(SightTimer);
+	}
+}
