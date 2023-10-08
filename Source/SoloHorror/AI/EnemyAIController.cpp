@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2023 RengarTheRed All rights reserved.
 
 #include "EnemyAIController.h"
 
@@ -98,9 +98,6 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 
 void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 {
-	GEngine->AddOnScreenDebugMessage(0, 4.f, FColor::Blue, FString("Perceived"));
-
-	
 	// Hearing
 	FAISenseID HearingSenseID = UAISense::GetSenseID<UAISense_Hearing>(); 	
 	if (PerceptionComponent->GetSenseConfig(HearingSenseID) != nullptr)
@@ -113,10 +110,7 @@ void AEnemyAIController::OnPawnDetected(const TArray<AActor*>& DetectedPawns)
 				FVector HeardSomethingLocation = HeardPerceptionInfo->GetStimulusLocation(HearingSenseID);
 				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, FString("Player Heard"));
 				BB->SetValue<UBlackboardKeyType_Bool>("HeardSound", true);
-				BB->SetValue<UBlackboardKeyType_Bool>("ChasingPlayer", true);
 				BB->SetValue<UBlackboardKeyType_Vector>("LastSoundLocation", HeardSomethingLocation);
-
-				
 			}
 		}
 	}
