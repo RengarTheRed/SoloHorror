@@ -2,4 +2,10 @@
 
 
 #include "PlayerHUD.h"
+#include "Kismet/GameplayStatics.h"
 
+
+void UPlayerHUD::QuitButton()
+{
+	UGameplayStatics::OpenLevel(this, FName("MainMenu"), true);
+}

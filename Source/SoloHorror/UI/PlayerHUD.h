@@ -13,5 +13,7 @@ UCLASS()
 class SOLOHORROR_API UPlayerHUD : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+	UFUNCTION(BlueprintCallable)
+	void QuitButton();
 };
